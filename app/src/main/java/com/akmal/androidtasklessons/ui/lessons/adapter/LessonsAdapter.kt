@@ -37,7 +37,7 @@ class LessonsAdapter : RecyclerView.Adapter<LessonsAdapter.Holder>() {
 
     inner class Holder(private val binding: ItemLessonBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(data: LessonViewData, pos: Int) = with(binding) {
-            image.loadImage(data.thumbnail, 0)
+            image.loadImage(data.thumbnail)
             name.text = data.name
             desc.text = data.description
 

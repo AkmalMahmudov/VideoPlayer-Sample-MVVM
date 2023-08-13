@@ -19,10 +19,21 @@ import com.akmal.androidtasklessons.databinding.FragmentVideoBinding
 import com.akmal.androidtasklessons.utils.Constants
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.SimpleExoPlayer
+import com.google.android.exoplayer2.database.StandaloneDatabaseProvider
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DefaultDataSource
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
+import com.google.android.exoplayer2.upstream.FileDataSource
+import com.google.android.exoplayer2.upstream.cache.CacheDataSink
+import com.google.android.exoplayer2.upstream.cache.CacheDataSource
+import com.google.android.exoplayer2.upstream.cache.NoOpCacheEvictor
+import com.google.android.exoplayer2.upstream.cache.SimpleCache
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import java.io.File
 
 class VideoFragment : Fragment(R.layout.fragment_video) {
     private val binding by viewBinding(FragmentVideoBinding::bind)
@@ -31,6 +42,7 @@ class VideoFragment : Fragment(R.layout.fragment_video) {
     private val navController by lazy(LazyThreadSafetyMode.NONE) { findNavController() }
     private lateinit var simpleExoPlayer: SimpleExoPlayer
     private var currentMediaIndex = 0
+    private lateinit var cache: SimpleCache
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -72,11 +84,20 @@ class VideoFragment : Fragment(R.layout.fragment_video) {
 
     private fun initializePlayer() {
 
-        val mediaDataSourceFactory = DefaultDataSource.Factory(requireContext())
+        //For caching purposes
+        val downloadContentDirectory = File(requireActivity().getExternalFilesDir(null), Constants.DOWNLOAD_CONTENT_DIRECTORY)
+        cache = SimpleCache(downloadContentDirectory, NoOpCacheEvictor(), StandaloneDatabaseProvider(requireContext()))
+        val cacheSink = CacheDataSink.Factory().setCache(cache)
+        val upstreamFactory = DefaultDataSource.Factory(requireContext(), DefaultHttpDataSource.Factory())
+        val downStreamFactory = FileDataSource.Factory()
+        val cacheDataSourceFactory = CacheDataSource.Factory().setCache(cache).setCacheWriteDataSinkFactory(cacheSink)
+            .setCacheReadDataSourceFactory(downStreamFactory).setUpstreamDataSourceFactory(upstreamFactory)
+            .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
+
         simpleExoPlayer = SimpleExoPlayer.Builder(requireContext()).build()
         args.lessons.list.forEach { lesson ->
             val mediaSource =
-                ProgressiveMediaSource.Factory(mediaDataSourceFactory).createMediaSource(MediaItem.fromUri(lesson.video_url))
+                ProgressiveMediaSource.Factory(cacheDataSourceFactory).createMediaSource(MediaItem.fromUri(lesson.video_url))
             simpleExoPlayer.addMediaSource(mediaSource)
         }
         currentMediaIndex = args.lessons.list.indexOf(args.item)
@@ -106,6 +127,9 @@ class VideoFragment : Fragment(R.layout.fragment_video) {
     override fun onDestroyView() {
         super.onDestroyView()
         toggleFullscreen(false)
+        CoroutineScope(Dispatchers.IO).launch {
+            cache.release()
+        }
     }
 
     private fun toggleFullscreen(isFullscreen: Boolean) {
