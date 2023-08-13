@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/app_nav"
+    app:startDestination="@id/lessonsFragment">
+
+    <fragment
+        android:id="@+id/lessonsFragment"
+        android:name="com.akmal.androidtasklessons.ui.lessons.LessonsFragment"
+        android:label="LessonsFragment"
+        tools:layout="@layout/fragment_lessons">
+        <action
+            android:id="@+id/action_lessonsFragment_to_videoFragment"
+            app:destination="@id/videoFragment" />
+        <action
+            android:id="@+id/action_lessonsFragment_to_premiumDialog"
+            app:destination="@id/premiumDialog" />
+    </fragment>
+    <fragment
+        android:id="@+id/videoFragment"
+        android:name="com.akmal.androidtasklessons.ui.video.VideoFragment"
+        android:label="VideoFragment" >
+        <action
+            android:id="@+id/action_videoFragment_to_premiumDialog"
+            app:destination="@id/premiumDialog" />
+        <argument
+            android:name="lessons"
+            app:argType="com.akmal.androidtasklessons.ui.lessons.model.LessonsList" />
+        <argument
+            android:name="item"
+            app:argType="com.akmal.androidtasklessons.ui.lessons.model.LessonViewData" />
+    </fragment>
+    <dialog
+        android:id="@+id/premiumDialog"
+        android:name="com.akmal.androidtasklessons.ui.lessons.dialog.PremiumDialog"
+        android:label="PremiumDialog" />
+</navigation>

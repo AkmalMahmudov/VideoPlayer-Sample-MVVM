@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Android Task Lessons</string>
+    <string name="sww">Something went wrong</string>
+    <string name="lessons">Lessons</string>
+    <string name="purchase">Purchase</string>
+    <string name="need_to_buy">You need to purchase premium to unlock all lessons and other features</string>
+</resources>
