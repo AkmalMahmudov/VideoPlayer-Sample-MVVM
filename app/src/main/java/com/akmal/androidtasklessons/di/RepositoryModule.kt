@@ -15,4 +15,8 @@ interface RepositoryModule {
     @Binds
     @Singleton
     fun bindOfferRepository(impl: LessonRepositoryImpl): LessonRepository
+
+    fun something1(){
+
+    }
 }
